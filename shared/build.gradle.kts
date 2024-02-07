@@ -20,7 +20,10 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            // put your Multiplatform dependencies here
+            implementation(libs.coroutines.core)
+            implementation(libs.kotlin.datetime)
+            implementation(libs.okio)
+            implementation(libs.umd.lib)
         }
     }
 }

@@ -33,6 +33,8 @@ kotlin {
 
     sourceSets {
         nativeMain.dependencies {
+            implementation(libs.clikt)
+            implementation(libs.mordant)
             implementation(projects.shared)
         }
     }

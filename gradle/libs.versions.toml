@@ -1,9 +1,15 @@
 [versions]
+clikt = "4.2.2"
 compose = "1.6.0"
 compose-plugin = "1.5.12"
+coroutines = "1.7.3"
+datetime = "0.5.0"
 detekt = "1.23.4"
 kotlin = "1.9.22"
 ktlint = "12.0.3"
+mordant = "2.3.0"
+okio = "3.7.0"
+umd-lib = "24.2.7"
 
 [plugins]
 compose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
@@ -13,5 +19,11 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 
 [libraries]
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "compose" }
+coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlin-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "datetime" }
+mordant = { group = "com.github.ajalt.mordant", name = "mordant", version.ref = "mordant" }
+okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
+umd-lib = { group = "io.vinicius.umd", name = "umd", version.ref = "umd-lib" }
