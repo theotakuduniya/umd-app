@@ -24,9 +24,9 @@ fun createProgressBar(text: String, total: Long): Pair<Animation<ProgressState>,
         progressLayout {
             text(text)
             percentage()
-            progressBar()
+            progressBar(width = 50)
             completed()
-            speed("B/s")
+            speed(" dl/sec")
             timeRemaining()
         }.build(it.completed, it.total, it.elapsedSeconds, it.completedPerSecond)
     }

@@ -1,47 +1,56 @@
 package io.vinicius.umd
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.split
-import com.github.ajalt.clikt.parameters.types.int
-import kotlinx.coroutines.delay
+import com.github.ajalt.mordant.rendering.TextColors.brightGreen
+import com.github.ajalt.mordant.rendering.TextColors.brightYellow
+import com.github.ajalt.mordant.rendering.TextStyles.bold
+import io.vinicius.umd.model.Event
+import io.vinicius.umd.model.ExtractorType
 import kotlinx.coroutines.runBlocking
-import okio.Path.Companion.toPath
+import okio.Path
 
 fun main(args: Array<String>) = Cli().main(args)
 
-class Cli : CliktCommand(
-    name = "umd",
-    help = "An app to easily download media files hosted on popular websites"
+fun startApp(
+    url: String,
+    directory: Path,
+    parallel: Int?,
+    limit: Int?,
+    extensions: List<String>
 ) {
-    private val url by argument(help = "URL where the media is hosted")
-
-    private val directory by option(
-        "-d", "--dir",
-        help = "Directory where the files will be saved"
-    ).convert { it.toPath() }.default(".".toPath())
-
-    private val limit by option(
-        help = "The maximum number of files to be downloaded",
-        envvar = "UMD_LIMIT"
-    ).int()
-
-    private val extensions by option(
-        help = "Filter the downloads by file extensions, separated by comma",
-        envvar = "UMD_EXTENSIONS"
-    ).split(",").default(emptyList())
-
-    override fun run() {
-        val (pb, state) = createProgressBar("file.jpg", 100)
-
-        runBlocking {
-            repeat(state.total.toInt()) {
-                pb.update(state.updateTotal(it+1L))
-                delay(100)
+    val umd = Umd(url) {
+        when (it) {
+            is Event.OnExtractorFound -> {
+                t.print("🌎 Website found: ${brightGreen(it.name)}; ")
             }
+
+            is Event.OnExtractorTypeFound -> {
+                t.println("extractor type: ${brightYellow(it.type)}")
+                val number = limit?.toString() ?: "all"
+                val source = if (it.name == null) "" else " ${bold(it.name!!)}"
+                t.print("📝 Collecting ${bold(number)} media from ${it.type}$source ")
+            }
+
+            is Event.OnMediaQueried -> {
+                t.print(".")
+            }
+
+            is Event.OnQueryCompleted -> {
+                t.println(" ${it.total} media found")
+            }
+
+            else -> {}
         }
     }
+
+    // Fetching media list
+    val response = runBlocking { umd.queryMedia(limit ?: Int.MAX_VALUE, extensions) }
+
+    // Download files
+    val finalParallel = parallel ?: if (response.extractor == ExtractorType.Coomer) 2 else 5
+    val downloads = startDownloads(response.media, directory, finalParallel)
+
+    // Removing duplicates
+    removeDuplicates(downloads)
+
+    t.println("\n🌟 Done!")
 }
