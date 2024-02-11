@@ -1,9 +1,11 @@
 package io.vinicius.umd
 
+import co.touchlab.kermit.Logger
 import io.vinicius.umd.ktx.byteString
 import io.vinicius.umd.ktx.exists
 import io.vinicius.umd.ktx.format
 import io.vinicius.umd.model.Media
+import io.vinicius.umd.model.MediaType
 import io.vinicius.umd.util.Fetch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,7 +30,7 @@ data class Download(
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun startDownloads(media: List<Media>, directory: Path, parallel: Int): List<Download> {
+fun startDownloads(fetch: Fetch, media: List<Media>, directory: Path, parallel: Int): List<Download> {
     val dispatcher = Dispatchers.IO.limitedParallelism(parallel)
     val downloads = mutableListOf<Download>()
     val (pb, state) = createProgressBar("Downloading", media.size.toLong())
@@ -43,7 +45,8 @@ fun startDownloads(media: List<Media>, directory: Path, parallel: Int): List<Dow
     runBlocking {
         val jobs = media.mapIndexed { index, m ->
             launch(dispatcher) {
-                downloads.add(downloadMedia(m, directory, index + 1))
+                val pair = if (m.mediaType == MediaType.Unknown) expandMedia(m, fetch) else Pair(m, fetch)
+                downloads.add(downloadMedia(pair, directory, index + 1))
                 pb.update(state.updateTotal(downloads.size.toLong()))
             }
         }
@@ -55,25 +58,47 @@ fun startDownloads(media: List<Media>, directory: Path, parallel: Int): List<Dow
     return downloads
 }
 
-private val fetch = Fetch()
+private fun expandMedia(media: Media, fetch: Fetch): Pair<Media, Fetch> {
+    return try {
+        val umd = Umd(media.url, metadata)
+        val response = runBlocking { umd.queryMedia() }
+        if (!metadata.containsKey(response.extractor) && response.metadata.isNotEmpty()) {
+            metadata[response.extractor] = response.metadata
+        }
 
-private suspend fun downloadMedia(media: Media, directory: Path, index: Int): Download {
-    val created = media.metadata["created"] as? String
+        val m = response.media
+        if (m.isNotEmpty()) Pair(m.first(), umd.configureFetch()) else Pair(media, fetch)
+    } catch (e: Exception) {
+        Logger.w("Umd-App") { "Failed to expand media URL: ${media.url}" }
+        Pair(media, fetch)
+    }
+}
+
+private suspend fun downloadMedia(pair: Pair<Media, Fetch>, directory: Path, index: Int): Download {
+    val (m, f) = pair
+    val created = m.metadata["created"] as? String
     val dateTime = if (created == null) Clock.System.now().toLocalDateTime(TimeZone.UTC) else LocalDateTime.parse(created)
-    val name = media.metadata["name"] as String
-    val extension = media.extension ?: "mp4"
+    val name = m.metadata["name"] as String
+    val extension = m.extension ?: "mp4"
     val filePath = "${dateTime.format()}-$name-$index.$extension".toPath()
     val fullPath = directory / filePath
 
-    val output = try {
-        fetch.downloadFile(media.url, fullPath.toString())
+    val output = if (m.mediaType != MediaType.Unknown) {
+        try {
+            Logger.i("Umd-App") { "Downloading: ${m.url}" }
+            f.downloadFile(m.url, fullPath.toString())
+            ""
+        } catch (e: Exception) {
+            Logger.w("Umd-App") { "Failed to download: ${m.url}" }
+            e.message ?: "Error"
+        }
+    } else {
+        Logger.i("Umd-App") { "Ignoring unknown URL: ${m.url}" }
         ""
-    } catch (e: Exception) {
-        e.message ?: "Unknown"
     }
 
     return Download(
-        url = media.url,
+        url = m.url,
         filePath = fullPath,
         output = output,
         isSuccess = output.isEmpty(),

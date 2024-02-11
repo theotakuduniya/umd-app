@@ -21,6 +21,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.coroutines.core)
+            implementation(libs.kermit)
             implementation(libs.kotlin.datetime)
             implementation(libs.okio)
             implementation(libs.umd.lib)

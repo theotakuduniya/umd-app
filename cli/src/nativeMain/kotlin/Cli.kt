@@ -1,12 +1,17 @@
 package io.vinicius.umd
 
+import co.touchlab.kermit.Logger
+import co.touchlab.kermit.Severity
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.int
+import io.vinicius.umd.logger.FileWriter
+import io.vinicius.umd.logger.TerminalWriter
 import okio.Path.Companion.toPath
 
 class Cli : CliktCommand(
@@ -39,5 +44,17 @@ class Cli : CliktCommand(
         envvar = "UMD_EXTENSIONS"
     ).split(",").default(emptyList())
 
-    override fun run() = startApp(url, directory, parallel, limit, extensions)
+    private val verbose by option(
+        "-v", "--verbose",
+        help = "Print detailed debug information",
+        envvar = "UMD_VERBOSE"
+    ).flag()
+
+    override fun run() {
+        // Setup logs
+        Logger.setLogWriters(TerminalWriter(), FileWriter())
+        Logger.setMinSeverity(if (verbose) Severity.Verbose else Severity.Error)
+
+        startApp(url, directory, parallel, limit, extensions)
+    }
 }

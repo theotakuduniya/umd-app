@@ -8,6 +8,8 @@ import io.vinicius.umd.model.ExtractorType
 import kotlinx.coroutines.runBlocking
 import okio.Path
 
+val metadata: Metadata = mutableMapOf()
+
 fun main(args: Array<String>) = Cli().main(args)
 
 fun startApp(
@@ -17,7 +19,9 @@ fun startApp(
     limit: Int?,
     extensions: List<String>
 ) {
-    val umd = Umd(url) {
+    t.println()
+
+    val umd = Umd(url, metadata) {
         when (it) {
             is Event.OnExtractorFound -> {
                 t.print("🌎 Website found: ${brightGreen(it.name)}; ")
@@ -44,13 +48,17 @@ fun startApp(
 
     // Fetching media list
     val response = runBlocking { umd.queryMedia(limit ?: Int.MAX_VALUE, extensions) }
+    if (!metadata.containsKey(response.extractor) && response.metadata.isNotEmpty()) {
+        metadata[response.extractor] = response.metadata
+    }
 
     // Download files
+    val fetch = umd.configureFetch()
     val finalParallel = parallel ?: if (response.extractor == ExtractorType.Coomer) 2 else 5
-    val downloads = startDownloads(response.media, directory, finalParallel)
+    val downloads = startDownloads(fetch, response.media, directory, finalParallel)
 
     // Removing duplicates
-    removeDuplicates(downloads)
+//    removeDuplicates(downloads)
 
     t.println("\n🌟 Done!")
 }
