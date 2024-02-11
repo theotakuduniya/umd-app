@@ -7,12 +7,10 @@ import io.vinicius.umd.ktx.format
 import io.vinicius.umd.model.Media
 import io.vinicius.umd.model.MediaType
 import io.vinicius.umd.util.Fetch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -29,10 +27,9 @@ data class Download(
     val hash: String
 )
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun startDownloads(fetch: Fetch, media: List<Media>, directory: Path, parallel: Int): List<Download> {
-    val dispatcher = Dispatchers.IO.limitedParallelism(parallel)
     val downloads = mutableListOf<Download>()
+    val semaphore = Semaphore(parallel)
     val (pb, state) = createProgressBar("Downloading", media.size.toLong())
 
     // Create the directory if it doesn't exist
@@ -44,10 +41,14 @@ fun startDownloads(fetch: Fetch, media: List<Media>, directory: Path, parallel: 
 
     runBlocking {
         val jobs = media.mapIndexed { index, m ->
-            launch(dispatcher) {
+            launch {
+                semaphore.acquire()
+
                 val pair = if (m.mediaType == MediaType.Unknown) expandMedia(m, fetch) else Pair(m, fetch)
                 downloads.add(downloadMedia(pair, directory, index + 1))
                 pb.update(state.updateTotal(downloads.size.toLong()))
+
+                semaphore.release()
             }
         }
 
@@ -90,7 +91,7 @@ private suspend fun downloadMedia(pair: Pair<Media, Fetch>, directory: Path, ind
             ""
         } catch (e: Exception) {
             Logger.w("Umd-App") { "Failed to download: ${m.url}" }
-            e.message ?: "Error"
+            e.message ?: "Unknown error"
         }
     } else {
         Logger.i("Umd-App") { "Ignoring unknown URL: ${m.url}" }

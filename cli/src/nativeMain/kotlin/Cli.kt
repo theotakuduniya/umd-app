@@ -4,6 +4,7 @@ import co.touchlab.kermit.Logger
 import co.touchlab.kermit.Severity
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.options.check
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
@@ -19,7 +20,6 @@ class Cli : CliktCommand(
     help = "An app to easily download media files hosted on popular websites"
 ) {
     private val url by argument(help = "URL where the media is hosted")
-//        .default("https://coomer.su/onlyfans/user/atomicbrunette18/post/265951860")
 
     private val directory by option(
         "-d", "--dir",
@@ -30,13 +30,17 @@ class Cli : CliktCommand(
         "-p", "--parallel",
         help = "The number of downloads to be done in parallel",
         envvar = "UMD_PARALLEL"
-    ).int()
+    ).int().check("The number of parallel downloads must be between 1-10") {
+        it in 1..10
+    }
 
     private val limit by option(
         "-l", "--limit",
         help = "The maximum number of files to be downloaded",
         envvar = "UMD_LIMIT"
-    ).int()
+    ).int().check("The limit of files to download must be greater than 0") {
+        it > 0
+    }
 
     private val extensions by option(
         "-e", "--extensions",
@@ -53,7 +57,7 @@ class Cli : CliktCommand(
     override fun run() {
         // Setup logs
         Logger.setLogWriters(TerminalWriter(), FileWriter())
-        Logger.setMinSeverity(if (verbose) Severity.Verbose else Severity.Error)
+        Logger.setMinSeverity(if (verbose) Severity.Verbose else Severity.Assert)
 
         startApp(url, directory, parallel, limit, extensions)
     }

@@ -58,7 +58,7 @@ fun startApp(
     val downloads = startDownloads(fetch, response.media, directory, finalParallel)
 
     // Removing duplicates
-//    removeDuplicates(downloads)
+    removeDuplicates(downloads)
 
     t.println("\n🌟 Done!")
 }
