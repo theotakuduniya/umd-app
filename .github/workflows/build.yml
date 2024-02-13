@@ -1,0 +1,92 @@
+name: build
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    outputs:
+      VERSION: ${{ steps.vars.outputs.VERSION }}
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Restore the cache
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: ${{ runner.os }}-build
+
+      - name: Set version
+        id: vars
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> GITHUB_OUTPUT
+
+      - name: Create binaries
+        run: |
+          ./gradlew assemble
+
+          mkdir -p builds
+          zip -j -9 builds/umd_windows_amd64.zip cli/build/bin/mingwX64/releaseExecutable/umd.exe
+
+          mv cli/build/bin/linuxX64/releaseExecutable/umd.kexe cli/build/bin/linuxX64/releaseExecutable/umd
+          zip -j -9 builds/umd_linux_amd64.zip cli/build/bin/linuxX64/releaseExecutable/umd
+
+          mv cli/build/bin/macosArm64/releaseExecutable/umd.kexe cli/build/bin/macosArm64/releaseExecutable/umd
+          zip -j -9 builds/umd_macos_arm64.zip cli/build/bin/macosArm64/releaseExecutable/umd
+
+          mv cli/build/bin/macosX64/releaseExecutable/umd.kexe cli/build/bin/macosX64/releaseExecutable/umd
+          zip -j -9 builds/umd_macos_amd64.zip cli/build/bin/macosX64/releaseExecutable/umd
+
+      - name: Save artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          path: ./builds/
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      # The `fetch-depth: 0` is important to fetch all the tags
+      - name: Code checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: binaries
+
+      - name: Creating the changelog
+        run: |
+          echo "Changes in this release:" > changelog.md
+          git log $(git describe --tags --abbrev=0 \
+          $(git rev-list --tags --skip=1 --max-count=1))..HEAD --oneline \
+          --pretty=format:"- %s" >> changelog.md
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1
+        with:
+          name: ${{ needs.build.outputs.VERSION }}
+          tag: ${{ needs.build.outputs.VERSION }}
+          bodyFile: changelog.md
+          allowUpdates: true
+          replacesArtifacts: true
+          artifacts: "*.zip"
