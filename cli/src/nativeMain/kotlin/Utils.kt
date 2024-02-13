@@ -2,12 +2,9 @@ package io.vinicius.umd
 
 import com.github.ajalt.mordant.rendering.TextColors.brightBlue
 import com.github.ajalt.mordant.rendering.TextColors.brightRed
-import com.github.ajalt.mordant.terminal.Terminal
 import io.vinicius.umd.ktx.delete
 import io.vinicius.umd.ktx.exists
 import io.vinicius.umd.ktx.size
-
-val t = Terminal()
 
 fun removeDuplicates(downloads: List<Download>): Int {
     var numDeleted = 0

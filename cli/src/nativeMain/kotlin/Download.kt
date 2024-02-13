@@ -24,13 +24,16 @@ data class Download(
     val filePath: Path,
     val output: String,
     val isSuccess: Boolean,
-    val hash: String
+    val hash: String,
 )
 
 fun startDownloads(fetch: Fetch, media: List<Media>, directory: Path, parallel: Int): List<Download> {
     val downloads = mutableListOf<Download>()
     val semaphore = Semaphore(parallel)
     val (pb, state) = createProgressBar("Downloading", media.size.toLong())
+    val padding = media.size.toString().count()
+    val current = mutableListOf<Pair<Int, Media>>()
+    val anim = printMostRecent(padding)
 
     // Create the directory if it doesn't exist
     if (!directory.exists()) {
@@ -38,14 +41,22 @@ fun startDownloads(fetch: Fetch, media: List<Media>, directory: Path, parallel: 
     }
 
     t.println()
+    pb.update(state.updateTotal(downloads.size.toLong()))
 
     runBlocking {
         val jobs = media.mapIndexed { index, m ->
             launch {
                 semaphore.acquire()
 
+                // File list
+                current.add(Pair(index, m))
+                anim.update(current.takeLast(5))
+
+                // File download
                 val pair = if (m.mediaType == MediaType.Unknown) expandMedia(m, fetch) else Pair(m, fetch)
                 downloads.add(downloadMedia(pair, directory, index + 1))
+
+                // Progress bar
                 pb.update(state.updateTotal(downloads.size.toLong()))
 
                 semaphore.release()
@@ -53,6 +64,7 @@ fun startDownloads(fetch: Fetch, media: List<Media>, directory: Path, parallel: 
         }
 
         jobs.joinAll()
+        anim.stop()
         pb.stop()
     }
 
@@ -103,6 +115,6 @@ private suspend fun downloadMedia(pair: Pair<Media, Fetch>, directory: Path, ind
         filePath = fullPath,
         output = output,
         isSuccess = output.isEmpty(),
-        hash = if (fullPath.exists()) fullPath.byteString().sha1().hex() else ""
+        hash = if (fullPath.exists()) fullPath.byteString().sha1().hex() else "",
     )
 }

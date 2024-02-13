@@ -12,13 +12,7 @@ val metadata: Metadata = mutableMapOf()
 
 fun main(args: Array<String>) = Cli().main(args)
 
-fun startApp(
-    url: String,
-    directory: Path,
-    parallel: Int?,
-    limit: Int?,
-    extensions: List<String>
-) {
+fun startApp(url: String, directory: Path, parallel: Int?, limit: Int?, extensions: List<String>) {
     t.println()
 
     val umd = Umd(url, metadata) {
