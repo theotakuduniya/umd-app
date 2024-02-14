@@ -8,7 +8,7 @@ Supported sites:
 
 ## 🎥 Demo
 
-[![asciicast](https://asciinema.org/a/I1kPDU24ecJF0mNKspBCqzMGd.svg)](https://asciinema.org/a/I1kPDU24ecJF0mNKspBCqzMGd)
+[![asciicast](https://asciinema.org/a/rH7Vb6r8RHtjPa4xuyTcr5o8s.svg)](https://asciinema.org/a/rH7Vb6r8RHtjPa4xuyTcr5o8s)
 
 ## 🖼️ Usage
 
@@ -82,7 +82,7 @@ You can convert the media downloaded to better formats (AVIF for images and AV1 
 
 In the project's root folder run in the CLI:
 
-Go:
+Gradle:
 
 ```
 $ ./gradlew linuxArm64Binaries

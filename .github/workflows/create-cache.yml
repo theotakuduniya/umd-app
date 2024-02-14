@@ -4,11 +4,6 @@ on:
   schedule:
     - cron: '0 0 1 * *' # For more: https://crontab.guru/#0_0_1_*_*
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch name'
-        required: true
-        default: 'main'
 
 jobs:
   build:
@@ -23,7 +18,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Publish package
+      - name: Creating cache
         run: |
           ./gradlew assemble
 
