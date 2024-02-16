@@ -62,7 +62,7 @@ private fun downloadInfo(index: Int, padding: Int, media: Media): String {
     val emoji: String
     val label: String
     val number = bold(blue((index + 1).toString().padStart(padding, '0')))
-    val url = underline(brightCyan(media.url.take(68)))
+    val url = underline(brightCyan(media.url))
 
     if (media.mediaType == MediaType.Image) {
         emoji = "📸"

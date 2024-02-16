@@ -27,7 +27,7 @@ data class Download(
     val hash: String,
 )
 
-fun startDownloads(fetch: Fetch, media: List<Media>, directory: Path, parallel: Int): List<Download> {
+fun startDownloads(media: List<Media>, fetch: Fetch, directory: Path, parallel: Int): List<Download> {
     val downloads = mutableListOf<Download>()
     val semaphore = Semaphore(parallel)
     val (pb, state) = createProgressBar("Downloading", media.size.toLong())
@@ -56,7 +56,7 @@ fun startDownloads(fetch: Fetch, media: List<Media>, directory: Path, parallel: 
                 val pair = if (m.mediaType == MediaType.Unknown) expandMedia(m, fetch) else Pair(m, fetch)
                 downloads.add(downloadMedia(pair, directory, index + 1))
 
-                // Progress bar
+                // Progress bar update
                 pb.update(state.updateTotal(downloads.size.toLong()))
 
                 semaphore.release()
@@ -96,18 +96,13 @@ private suspend fun downloadMedia(pair: Pair<Media, Fetch>, directory: Path, ind
     val filePath = "${dateTime.format()}-$name-$index.$extension".toPath()
     val fullPath = directory / filePath
 
-    val output = if (m.mediaType != MediaType.Unknown) {
-        try {
-            Logger.i("Umd-App") { "Downloading: ${m.url}" }
-            f.downloadFile(m.url, fullPath.toString())
-            ""
-        } catch (e: Exception) {
-            Logger.w("Umd-App") { "Failed to download: ${m.url}" }
-            e.message ?: "Unknown error"
-        }
-    } else {
-        Logger.i("Umd-App") { "Ignoring unknown URL: ${m.url}" }
+    val output = try {
+        Logger.i("Umd-App") { "Downloading: ${m.url}" }
+        f.downloadFile(m.url, fullPath.toString())
         ""
+    } catch (e: Exception) {
+        Logger.w("Umd-App") { "Failed to download: ${m.url}" }
+        e.message ?: "Unknown error"
     }
 
     return Download(

@@ -7,6 +7,7 @@ import io.vinicius.umd.model.Event
 import io.vinicius.umd.model.ExtractorType
 import kotlinx.coroutines.runBlocking
 import okio.Path
+import okio.Path.Companion.toPath
 
 val metadata: Metadata = mutableMapOf()
 
@@ -14,6 +15,7 @@ fun main(args: Array<String>) = Cli().main(args)
 
 fun startApp(url: String, directory: Path, parallel: Int?, limit: Int?, extensions: List<String>) {
     t.println()
+    var fullDirectory = directory
 
     val umd = Umd(url, metadata) {
         when (it) {
@@ -23,9 +25,9 @@ fun startApp(url: String, directory: Path, parallel: Int?, limit: Int?, extensio
 
             is Event.OnExtractorTypeFound -> {
                 t.println("extractor type: ${brightYellow(it.type)}")
+                fullDirectory /= it.type.toPath() / it.name.toPath()
                 val number = limit?.toString() ?: "all"
-                val source = if (it.name == null) "" else " ${bold(it.name!!)}"
-                t.print("📝 Collecting ${bold(number)} media from ${it.type}$source ")
+                t.print("📝 Collecting ${bold(number)} media from ${it.type} ${bold(it.name)} ")
             }
 
             is Event.OnMediaQueried -> {
@@ -48,8 +50,8 @@ fun startApp(url: String, directory: Path, parallel: Int?, limit: Int?, extensio
 
     // Download files
     val fetch = umd.configureFetch()
-    val finalParallel = parallel ?: if (response.extractor == ExtractorType.Coomer) 2 else 5
-    val downloads = startDownloads(fetch, response.media, directory, finalParallel)
+    val finalParallel = parallel ?: if (response.extractor == ExtractorType.Coomer) 3 else 5
+    val downloads = startDownloads(response.media, fetch, fullDirectory, finalParallel)
 
     // Removing duplicates
     removeDuplicates(downloads)
