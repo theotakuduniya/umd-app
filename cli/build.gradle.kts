@@ -27,6 +27,7 @@ kotlin {
         nativeMain.dependencies {
             implementation(libs.clikt)
             implementation(libs.mordant)
+            implementation(libs.mordant.coroutines)
             implementation(projects.shared)
         }
     }

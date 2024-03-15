@@ -56,5 +56,5 @@ fun startApp(url: String, directory: Path, parallel: Int?, limit: Int?, extensio
     // Removing duplicates
     removeDuplicates(downloads)
 
-    t.println("\n🌟 Done!")
+    t.print("\n🌟 Done!")
 }

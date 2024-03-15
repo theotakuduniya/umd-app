@@ -1,13 +1,21 @@
 package io.vinicius.umd
 
 import co.touchlab.kermit.Logger
+import com.github.ajalt.mordant.animation.coroutines.animateInCoroutine
+import com.github.ajalt.mordant.rendering.TextColors
+import com.github.ajalt.mordant.widgets.progress.completed
+import com.github.ajalt.mordant.widgets.progress.percentage
+import com.github.ajalt.mordant.widgets.progress.progressBar
+import com.github.ajalt.mordant.widgets.progress.progressBarLayout
+import com.github.ajalt.mordant.widgets.progress.speed
+import com.github.ajalt.mordant.widgets.progress.text
+import com.github.ajalt.mordant.widgets.progress.timeRemaining
 import io.vinicius.umd.ktx.byteString
 import io.vinicius.umd.ktx.exists
 import io.vinicius.umd.ktx.format
 import io.vinicius.umd.model.Media
 import io.vinicius.umd.model.MediaType
 import io.vinicius.umd.util.Fetch
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
@@ -30,10 +38,18 @@ data class Download(
 fun startDownloads(media: List<Media>, fetch: Fetch, directory: Path, parallel: Int): List<Download> {
     val downloads = mutableListOf<Download>()
     val semaphore = Semaphore(parallel)
-    val (pb, state) = createProgressBar("Downloading", media.size.toLong())
     val padding = media.size.toString().count()
     val current = mutableListOf<Pair<Int, Media>>()
     val anim = printMostRecent(padding)
+
+    val pb = progressBarLayout {
+        text("Downloading")
+        percentage(style = t.theme.warning)
+        progressBar(width = 50)
+        completed(style = t.theme.success)
+        speed(" dl/sec", style = t.theme.info)
+        timeRemaining(style = TextColors.magenta)
+    }.animateInCoroutine(t, media.size.toLong())
 
     // Create the directory if it doesn't exist
     if (!directory.exists()) {
@@ -41,10 +57,11 @@ fun startDownloads(media: List<Media>, fetch: Fetch, directory: Path, parallel: 
     }
 
     t.println()
-    pb.update(state.updateTotal(downloads.size.toLong()))
 
     runBlocking {
-        val jobs = media.mapIndexed { index, m ->
+        val pbJob = launch { pb.execute() }
+
+        media.mapIndexed { index, m ->
             launch {
                 semaphore.acquire()
 
@@ -57,15 +74,14 @@ fun startDownloads(media: List<Media>, fetch: Fetch, directory: Path, parallel: 
                 downloads.add(downloadMedia(pair, directory, index + 1))
 
                 // Progress bar update
-                pb.update(state.updateTotal(downloads.size.toLong()))
+                pb.update { completed = downloads.size.toLong() }
 
                 semaphore.release()
             }
         }
 
-        jobs.joinAll()
+        pbJob.join()
         anim.stop()
-        pb.stop()
     }
 
     return downloads
