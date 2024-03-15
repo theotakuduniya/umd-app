@@ -5,27 +5,25 @@ import com.github.ajalt.mordant.animation.textAnimation
 import com.github.ajalt.mordant.rendering.TextColors.blue
 import com.github.ajalt.mordant.rendering.TextColors.brightCyan
 import com.github.ajalt.mordant.rendering.TextColors.magenta
+import com.github.ajalt.mordant.rendering.TextColors.red
 import com.github.ajalt.mordant.rendering.TextColors.yellow
 import com.github.ajalt.mordant.rendering.TextStyles.bold
 import com.github.ajalt.mordant.rendering.TextStyles.underline
 import com.github.ajalt.mordant.terminal.Terminal
 import io.vinicius.umd.model.Media
 import io.vinicius.umd.model.MediaType
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 
 val t = Terminal()
 
-data class ProgressState(
-    val completed: Long,
-    val total: Long,
-    val elapsedSeconds: Double = 0.0,
-    val completedPerSecond: Double = 0.0,
-    private val instant: Instant = Clock.System.now(),
-) {
-    fun updateTotal(completed: Long): ProgressState {
-        val elapsed = (Clock.System.now() - instant).inWholeMilliseconds / 1000.0
-        return ProgressState(completed, total, elapsed, completed / elapsed)
+fun createSpinner(message: String): Animation<Pair<Int, Int>> {
+    val spinner = listOf("-", "\\", "|", "/")
+    return t.textAnimation { (spin, number) ->
+        if (spin > 0) {
+            val index = (spin - 1) % spinner.size
+            "$message ${red(spinner[index])} $number"
+        } else {
+            "$message ${red("-")} $number media found"
+        }
     }
 }
 
@@ -48,9 +46,9 @@ private fun downloadInfo(index: Int, padding: Int, media: Media): String {
         emoji = "📸"
         label = magenta("image")
     } else {
-        emoji = "📹"
+        emoji = "🎥"
         label = yellow("video")
     }
 
-    return "$emoji [$number] Downloading $label $url ..."
+    return "$emoji [$number] Downloading $label $url"
 }

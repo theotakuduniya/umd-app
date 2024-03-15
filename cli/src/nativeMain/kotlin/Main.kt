@@ -1,5 +1,6 @@
 package io.vinicius.umd
 
+import com.github.ajalt.mordant.animation.Animation
 import com.github.ajalt.mordant.rendering.TextColors.brightGreen
 import com.github.ajalt.mordant.rendering.TextColors.brightYellow
 import com.github.ajalt.mordant.rendering.TextStyles.bold
@@ -14,8 +15,13 @@ val metadata: Metadata = mutableMapOf()
 fun main(args: Array<String>) = Cli().main(args)
 
 fun startApp(url: String, directory: Path, parallel: Int?, limit: Int?, extensions: List<String>) {
-    t.println()
+    var spinner: Animation<Pair<Int, Int>>? = null
+    var spin = 1
+    var total = 0
     var fullDirectory = directory
+
+    t.cursor.hide(showOnExit = true)
+    t.println()
 
     val umd = Umd(url, metadata) {
         when (it) {
@@ -27,15 +33,17 @@ fun startApp(url: String, directory: Path, parallel: Int?, limit: Int?, extensio
                 t.println("extractor type: ${brightYellow(it.type)}")
                 fullDirectory /= it.type.toPath() / it.name.toPath()
                 val number = limit?.toString() ?: "all"
-                t.print("📝 Collecting ${bold(number)} media from ${it.type} ${bold(it.name)} ")
+                spinner = createSpinner("📝 Collecting ${bold(number)} media from ${it.type} ${bold(it.name)}")
             }
 
             is Event.OnMediaQueried -> {
-                t.print(".")
+                total += it.amount
+                spinner?.update(Pair(++spin, total))
             }
 
             is Event.OnQueryCompleted -> {
-                t.println(" ${it.total} media found")
+                spinner?.update(Pair(0, it.total))
+                spinner?.stop()
             }
 
             else -> {}
