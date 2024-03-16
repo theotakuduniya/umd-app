@@ -46,7 +46,7 @@ private fun downloadInfo(index: Int, padding: Int, media: Media): String {
         emoji = "📸"
         label = magenta("image")
     } else {
-        emoji = "🎥"
+        emoji = "📹"
         label = yellow("video")
     }
 
