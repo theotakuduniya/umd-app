@@ -2,7 +2,7 @@ name: create-cache
 
 on:
   schedule:
-    - cron: '0 0 1 * *' # For more: https://crontab.guru/#0_0_1_*_*
+    - cron: '0 0 * * 1' # For more: https://crontab.guru/#0 0 * * 1
   workflow_dispatch:
 
 jobs:
