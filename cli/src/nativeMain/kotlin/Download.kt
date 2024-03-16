@@ -10,9 +10,9 @@ import com.github.ajalt.mordant.widgets.progress.progressBarLayout
 import com.github.ajalt.mordant.widgets.progress.speed
 import com.github.ajalt.mordant.widgets.progress.text
 import com.github.ajalt.mordant.widgets.progress.timeRemaining
-import io.vinicius.umd.ktx.byteString
 import io.vinicius.umd.ktx.exists
 import io.vinicius.umd.ktx.format
+import io.vinicius.umd.ktx.sha1
 import io.vinicius.umd.model.Media
 import io.vinicius.umd.model.MediaType
 import io.vinicius.umd.util.Fetch
@@ -126,6 +126,6 @@ private suspend fun downloadMedia(pair: Pair<Media, Fetch>, directory: Path, ind
         filePath = fullPath,
         output = output,
         isSuccess = output.isEmpty(),
-        hash = if (fullPath.exists()) fullPath.byteString().sha1().hex() else "",
+        hash = if (fullPath.exists()) fullPath.sha1() else "",
     )
 }

@@ -7,9 +7,9 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.check
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.split
+import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.int
 import io.vinicius.umd.logger.FileWriter
 import io.vinicius.umd.logger.TerminalWriter
@@ -52,12 +52,21 @@ class Cli : CliktCommand(
         "-v", "--verbose",
         help = "Print detailed debug information",
         envvar = "UMD_VERBOSE"
-    ).flag()
+    ).choice("file", "terminal", "all").convert {
+        when (it) {
+            "file" -> listOf(FileWriter())
+            "terminal" -> listOf(TerminalWriter())
+            "all" -> listOf(TerminalWriter(), FileWriter())
+            else -> emptyList()
+        }
+    }
 
     override fun run() {
         // Setup logs
-        Logger.setLogWriters(TerminalWriter(), FileWriter())
-        Logger.setMinSeverity(if (verbose) Severity.Verbose else Severity.Assert)
+        verbose?.let {
+            Logger.setLogWriters(it)
+            Logger.setMinSeverity(Severity.Verbose)
+        }
 
         startApp(url, directory, parallel, limit, extensions)
     }
