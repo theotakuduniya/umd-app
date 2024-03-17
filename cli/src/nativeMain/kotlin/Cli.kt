@@ -68,6 +68,11 @@ class Cli : CliktCommand(
             Logger.setMinSeverity(Severity.Verbose)
         }
 
+        Logger.i("Umd-App") { "URL: $url" }
+        Logger.i("Umd-App") { "Directory: $directory" }
+        Logger.i("Umd-App") { "Limit: $limit" }
+        Logger.i("Umd-App") { "Extensions: ${extensions.joinToString(",")}" }
+
         startApp(url, directory, parallel, limit, extensions)
     }
 }
