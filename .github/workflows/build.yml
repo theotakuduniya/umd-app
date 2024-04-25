@@ -42,6 +42,9 @@ jobs:
           mkdir -p builds
           zip -j -9 builds/umd_windows_amd64.zip cli/build/bin/mingwX64/releaseExecutable/umd.exe
 
+          mv cli/build/bin/linuxArm64/releaseExecutable/umd.kexe cli/build/bin/linuxArm64/releaseExecutable/umd
+          zip -j -9 builds/umd_linux_arm64.zip cli/build/bin/linuxArm64/releaseExecutable/umd
+
           mv cli/build/bin/linuxX64/releaseExecutable/umd.kexe cli/build/bin/linuxX64/releaseExecutable/umd
           zip -j -9 builds/umd_linux_amd64.zip cli/build/bin/linuxX64/releaseExecutable/umd
 

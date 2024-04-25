@@ -8,9 +8,10 @@ version = "1.0.0"
 
 kotlin {
     val targets = listOf(
+        linuxArm64(),
+        linuxX64(),
         macosArm64(),
         macosX64(),
-        linuxX64(),
         mingwX64(),
     )
 
