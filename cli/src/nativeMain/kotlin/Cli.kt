@@ -62,6 +62,8 @@ class Cli : CliktCommand(
     }
 
     override fun run() {
+        Logger.setMinSeverity(Severity.Assert)
+
         // Setup logs
         verbose?.let {
             Logger.setLogWriters(it)
