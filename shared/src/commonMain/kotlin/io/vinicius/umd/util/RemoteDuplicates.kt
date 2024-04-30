@@ -1,20 +1,26 @@
-package io.vinicius.umd
+package io.vinicius.umd.util
 
-import com.github.ajalt.mordant.rendering.TextColors.brightBlue
-import com.github.ajalt.mordant.rendering.TextColors.brightRed
 import io.vinicius.umd.ktx.delete
 import io.vinicius.umd.ktx.exists
 import io.vinicius.umd.ktx.size
+import io.vinicius.umd.model.Download
 
-fun removeDuplicates(downloads: List<Download>): Int {
+class RemoveEvent {
+    var onStart: () -> Unit = {}
+    var onZeroByte: (filePath: String) -> Unit = {}
+    var onDuplicate: (filePath: String) -> Unit = {}
+}
+
+fun removeDuplicates(downloads: List<Download>, events: RemoveEvent.() -> Unit): Int {
     var numDeleted = 0
-    t.println("\n🚮 Removing duplicated downloads...")
+    val ev = RemoveEvent().apply(events)
+    if (downloads.isNotEmpty()) ev.onStart()
 
     // Removing 0-byte files
     downloads.forEach {
         if (it.filePath.exists() && it.filePath.size() == 0L) {
             numDeleted++
-            t.println("[${brightBlue("Z")}] ${it.filePath.name}")
+            ev.onZeroByte(it.filePath.name)
             it.filePath.delete()
         }
     }
@@ -24,7 +30,7 @@ fun removeDuplicates(downloads: List<Download>): Int {
         it.drop(1).forEach { download ->
             if (download.filePath.exists()) {
                 numDeleted++
-                t.println("[${brightRed("D")}] ${download.filePath.name}")
+                ev.onDuplicate(download.filePath.name)
                 download.filePath.delete()
             }
         }

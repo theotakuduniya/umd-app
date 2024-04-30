@@ -10,8 +10,7 @@ detekt {
     config.setFrom("$rootDir/config/detekt.yml")
     source.setFrom(
         "$rootDir/cli/src/nativeMain/kotlin",
-        "$rootDir/gui/src/desktopMain/kotlin",
+//        "$rootDir/gui/src/desktopMain/kotlin",
         "$rootDir/shared/src/commonMain/kotlin",
-        "$rootDir/shared/src/jvmMain/kotlin",
     )
 }

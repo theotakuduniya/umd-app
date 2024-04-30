@@ -13,6 +13,7 @@ import com.github.ajalt.mordant.widgets.progress.timeRemaining
 import io.vinicius.umd.ktx.exists
 import io.vinicius.umd.ktx.format
 import io.vinicius.umd.ktx.sha1
+import io.vinicius.umd.model.Download
 import io.vinicius.umd.model.Media
 import io.vinicius.umd.model.MediaType
 import io.vinicius.umd.util.Fetch
@@ -26,14 +27,6 @@ import kotlinx.datetime.toLocalDateTime
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
-
-data class Download(
-    val url: String,
-    val filePath: Path,
-    val output: String,
-    val isSuccess: Boolean,
-    val hash: String,
-)
 
 fun startDownloads(media: List<Media>, fetch: Fetch, directory: Path, parallel: Int): List<Download> {
     val downloads = mutableListOf<Download>()
@@ -98,7 +91,7 @@ private fun expandMedia(media: Media, fetch: Fetch): Pair<Media, Fetch> {
         val m = response.media
         if (m.isNotEmpty()) Pair(m.first(), umd.configureFetch()) else Pair(media, fetch)
     } catch (e: Exception) {
-        Logger.w("Umd-App") { "Failed to expand media URL: ${media.url}" }
+        Logger.w(appTag) { "Failed to expand media URL: ${media.url}" }
         Pair(media, fetch)
     }
 }
@@ -106,18 +99,24 @@ private fun expandMedia(media: Media, fetch: Fetch): Pair<Media, Fetch> {
 private suspend fun downloadMedia(pair: Pair<Media, Fetch>, directory: Path, index: Int): Download {
     val (m, f) = pair
     val created = m.metadata["created"] as? String
-    val dateTime = if (created == null) Clock.System.now().toLocalDateTime(TimeZone.UTC) else LocalDateTime.parse(created)
+    val dateTime = if (created == null) {
+        Clock.System.now().toLocalDateTime(
+            TimeZone.UTC,
+        )
+    } else {
+        LocalDateTime.parse(created)
+    }
     val name = m.metadata["name"] as String
     val extension = m.extension ?: "mp4"
     val filePath = "${dateTime.format()}-$name-$index.$extension".toPath()
     val fullPath = directory / filePath
 
     val output = try {
-        Logger.i("Umd-App") { "Downloading: ${m.url}" }
+        Logger.i(appTag) { "Downloading: ${m.url}" }
         f.downloadFile(m.url, fullPath.toString())
         ""
     } catch (e: Exception) {
-        Logger.w("Umd-App") { "Failed to download: ${m.url}" }
+        Logger.w(appTag) { "Failed to download: ${m.url}" }
         e.message ?: "Unknown error"
     }
 

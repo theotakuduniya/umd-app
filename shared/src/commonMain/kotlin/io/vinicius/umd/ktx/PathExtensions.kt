@@ -3,6 +3,7 @@ package io.vinicius.umd.ktx
 import okio.FileSystem
 import okio.HashingSink
 import okio.Path
+import okio.SYSTEM
 import okio.blackholeSink
 import okio.buffer
 import okio.use
@@ -16,14 +17,8 @@ fun Path.sha1(): String {
     return sink.hash.hex()
 }
 
-fun Path.delete() {
-    FileSystem.SYSTEM.delete(this)
-}
+fun Path.delete() = FileSystem.SYSTEM.delete(this)
 
-fun Path.exists(): Boolean {
-    return FileSystem.SYSTEM.exists(this)
-}
+fun Path.exists() = FileSystem.SYSTEM.exists(this)
 
-fun Path.size(): Long {
-    return FileSystem.SYSTEM.metadata(this).size ?: 0
-}
+fun Path.size() = FileSystem.SYSTEM.metadata(this).size ?: 0
