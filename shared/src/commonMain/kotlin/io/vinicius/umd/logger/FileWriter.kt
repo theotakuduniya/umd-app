@@ -3,11 +3,10 @@ package io.vinicius.umd.logger
 import co.touchlab.kermit.LogWriter
 import co.touchlab.kermit.Severity
 import io.vinicius.umd.ktx.exists
+import io.vinicius.umd.util.fs
 import kotlinx.datetime.Clock
-import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
-import okio.SYSTEM
 import okio.buffer
 import okio.use
 
@@ -17,7 +16,7 @@ class FileWriter(private val directory: Path) : LogWriter() {
     init {
         // Create the directory if it doesn't exist
         if (!directory.exists()) {
-            FileSystem.SYSTEM.createDirectories(directory)
+            fs.createDirectories(directory)
         }
     }
 
@@ -27,11 +26,11 @@ class FileWriter(private val directory: Path) : LogWriter() {
         val filePath = directory / "umd-logs.txt".toPath()
 
         if (firstWrite) {
-            FileSystem.SYSTEM.appendingSink(filePath).buffer().use { it.writeUtf8("---\n") }
+            fs.appendingSink(filePath).buffer().use { it.writeUtf8("---\n") }
             firstWrite = false
         }
 
-        FileSystem.SYSTEM.appendingSink(filePath).buffer().use {
+        fs.appendingSink(filePath).buffer().use {
             it.writeUtf8("$timestamp $level/$tag: $message\n")
             throwable?.let { error -> it.writeUtf8(error.stackTraceToString() + "\n") }
         }

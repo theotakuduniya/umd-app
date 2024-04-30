@@ -95,7 +95,7 @@ $ ./gradlew mingwX64Binaries
 Docker:
 
 ```
-$ docker build -t ghcr.io/vegidio/umd . --build-arg="VERSION=24.4.4"
+$ docker build -t ghcr.io/vegidio/umd . --build-arg="VERSION=24.5.0"
 ```
 
 ## 📈 Telemetry
