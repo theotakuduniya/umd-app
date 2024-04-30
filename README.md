@@ -70,7 +70,7 @@ You can filter the files that you want to download based on their extension, sep
 
 -   **Docker:** add the environment variable `-e UMD_EXTENSIONS`; for example: `-e UMD_EXTENSIONS=jpg,jpeg`.
 
-### Convert images/videos
+### Convert images/videos (coming soon...)
 
 You can convert the media downloaded to better formats (AVIF for images and AV1 for videos); this will make the files smaller but preserving the same quality. To do that you must:
 
@@ -95,7 +95,7 @@ $ ./gradlew mingwX64Binaries
 Docker:
 
 ```
-$ docker build -t ghcr.io/vegidio/umd . --build-arg="VERSION=24.1.4"
+$ docker build -t ghcr.io/vegidio/umd . --build-arg="VERSION=24.4.4"
 ```
 
 ## 📈 Telemetry
