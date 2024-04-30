@@ -9,6 +9,7 @@ import com.github.ajalt.mordant.rendering.TextColors.brightYellow
 import com.github.ajalt.mordant.rendering.TextStyles.bold
 import io.vinicius.umd.model.Event
 import io.vinicius.umd.model.ExtractorType
+import io.vinicius.umd.util.createReport
 import io.vinicius.umd.util.removeDuplicates
 import kotlinx.coroutines.runBlocking
 import okio.Path
@@ -54,17 +55,23 @@ fun startApp(url: String, directory: Path, parallel: Int?, limit: Int?, extensio
         }
     }
 
+    Logger.i(appTag) { "URL: $url" }
+    Logger.i(appTag) { "Directory: $directory" }
+    Logger.i(appTag) { "Limit: ${limit ?: "none"}" }
+    Logger.i(appTag) { "Extensions: ${extensions.joinToString(",")}" }
+
     // Fetching media list
     val response = runBlocking { umd.queryMedia(limit ?: Int.MAX_VALUE, extensions) }
     if (!metadata.containsKey(response.extractor) && response.metadata.isNotEmpty()) {
         metadata[response.extractor] = response.metadata
     }
 
-    // Download files
-    val fetch = umd.configureFetch()
+    // Determine the number of downloads in parallel
     val finalParallel = parallel ?: if (response.extractor == ExtractorType.Coomer) 3 else 5
     Logger.i(appTag) { "Parallel: $finalParallel" }
 
+    // Download files
+    val fetch = umd.configureFetch()
     val downloads = startDownloads(response.media, fetch, fullDirectory, finalParallel)
 
     // Removing duplicates
@@ -74,5 +81,9 @@ fun startApp(url: String, directory: Path, parallel: Int?, limit: Int?, extensio
         onDuplicate = { t.println("[${brightRed("D")}] $it") }
     }
 
+    // Create the report
+    createReport(fullDirectory, downloads)
+
+    Logger.i(appTag) { "Done!" }
     t.print("\n🌟 Done!")
 }

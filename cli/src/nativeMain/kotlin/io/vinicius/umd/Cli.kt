@@ -60,9 +60,9 @@ class Cli : CliktCommand(
         envvar = "UMD_LOGS",
     ).choice("file", "terminal", "all").convert {
         when (it) {
-            "file" -> listOf(FileWriter())
+            "file" -> listOf(FileWriter(directory))
             "terminal" -> listOf(TerminalWriter())
-            "all" -> listOf(TerminalWriter(), FileWriter())
+            "all" -> listOf(TerminalWriter(), FileWriter(directory))
             else -> emptyList()
         }
     }
@@ -75,11 +75,6 @@ class Cli : CliktCommand(
             Logger.setLogWriters(it)
             Logger.setMinSeverity(Severity.Verbose)
         }
-
-        Logger.i(appTag) { "URL: $url" }
-        Logger.i(appTag) { "Directory: $directory" }
-        Logger.i(appTag) { "Limit: ${limit ?: "none"}" }
-        Logger.i(appTag) { "Extensions: ${extensions.joinToString(",")}" }
 
         startApp(url, directory, parallel, limit, extensions)
     }

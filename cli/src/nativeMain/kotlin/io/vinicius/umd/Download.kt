@@ -100,12 +100,11 @@ private suspend fun downloadMedia(pair: Pair<Media, Fetch>, directory: Path, ind
     val (m, f) = pair
     val created = m.metadata["created"] as? String
     val dateTime = if (created == null) {
-        Clock.System.now().toLocalDateTime(
-            TimeZone.UTC,
-        )
+        Clock.System.now().toLocalDateTime(TimeZone.UTC)
     } else {
         LocalDateTime.parse(created)
     }
+
     val name = m.metadata["name"] as String
     val extension = m.extension ?: "mp4"
     val filePath = "${dateTime.format()}-$name-$index.$extension".toPath()
