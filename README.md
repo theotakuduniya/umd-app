@@ -1,10 +1,16 @@
 # Universal Media Downloader (UMD)
 
-An app to easily download media files hosted on popular websites.
-
-Supported sites:
-
-[![](https://img.shields.io/badge/Coomer-1392F4?&style=for-the-badge&logo=onlyfans&logoColor=white)](https://coomer.su) [![](https://img.shields.io/badge/Reddit-FF4500?&style=for-the-badge&logo=reddit&logoColor=white)](https://reddit.com) [![](https://img.shields.io/badge/RedGifs-764ABC?&style=for-the-badge&logo=codeigniter&logoColor=white)](https://redgifs.com)
+<p align="center">
+<img src="assets/icon.avif" width="300" alt="Universal Media Downloader (UMD)"/>
+<br/>
+<strong>UMD</strong> is an app to easily download media files hosted on popular websites.
+<br/>
+It supports the following sites:
+<br/><br/>
+<a href="https://coomer.su" target="_blank"><img src="https://img.shields.io/badge/Coomer-1392F4?&style=for-the-badge&logo=onlyfans&logoColor=white"/></a>
+<a href="https://www.reddit.com" target="_blank"><img src="https://img.shields.io/badge/Reddit-FF4500?&style=for-the-badge&logo=reddit&logoColor=white"/></a>
+<a href="https://www.redgifs.com" target="_blank"><img src="https://img.shields.io/badge/RedGifs-764ABC?&style=for-the-badge&logo=codeigniter&logoColor=white"/></a>
+</p>
 
 ## 🎥 Demo
 
@@ -32,6 +38,7 @@ Where:
 
 -   `<url>` (mandatory): the URL of the website where the media is hosted.
 -   `-d` (optional): the directory where you want the files to be saved; default is the current directory.
+-   `--limit` (optional): the maximum number of files to download; default is no limit.
 
 For the full list of parameters, type `umd --help` in the terminal.
 
@@ -49,6 +56,7 @@ $ docker run --rm -t \
 Where:
 
 -   `-e UMD_URL`: (mandatory): the URL of the website where the media is hosted.
+-   `-e UMD_LIMIT` (optional): the maximum number of files to download; default is no limit.
 
 #### Volume
 
@@ -85,11 +93,7 @@ In the project's root folder run in the CLI:
 Gradle:
 
 ```
-$ ./gradlew linuxArm64Binaries
-$ ./gradlew linuxX64Binaries
-$ ./gradlew macosArm64Binaries
-$ ./gradlew macosX64Binaries
-$ ./gradlew mingwX64Binaries
+$ ./gradlew assemble
 ```
 
 Docker:
