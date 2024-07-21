@@ -31,7 +31,7 @@ There are 2 ways to use this app: through the CLI tool or using Docker. Here are
 Download the [latest version](https://github.com/vegidio/umd-app/releases) of **UMD** that matches your computer architecture and operating system. Extract the .zip file somewhere and then run the command below in the terminal:
 
 ```
-$ umd <url> -d /Downloads/UMD
+$ .\umd <url> -d /Downloads/UMD
 ```
 
 Where:
